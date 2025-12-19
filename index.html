@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lorebound — Advanced Character Generator</title>
+
+<style>
+:root{
+  --bg0:#05070d;
+  --bg1:#0a0f1f;
+  --glass-bg: rgba(255,255,255,0.10);
+  --glass-border: rgba(255,255,255,0.25);
+  --glass-border-soft: rgba(255,255,255,0.12);
+  --accent: #78aaff;
+  --success: #78ffdc;
+  --danger: #ff5a82;
+  --gold: #ffd700;
+  --text: rgba(255,255,255,.94);
+  --muted: rgba(255,255,255,.65);
+  --faint: rgba(255,255,255,.35);
+  --radius-xl: 24px;
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+*{ box-sizing:border-box; transition: all 0.2s ease; }
+
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: var(--text);
+  min-height:100vh;
+  padding:20px;
+  background: radial-gradient(circle at 15% 20%, rgba(120,170,255,.15), transparent 50%),
+              radial-gradient(circle at 85% 80%, rgba(255,120,180,.1), transparent 50%),
+              var(--bg0);
+  display: flex;
+  justify-content: center;
+}
+
+.app{
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media(max-width:900px){ .app{ grid-template-columns: 1fr; } }
+
+/* Glass Base */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--glass-border-soft);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Header */
+header { padding: 24px; border-bottom: 1px solid var(--glass-border-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:12px; }
+h1 { margin:0; font-size: 22px; letter-spacing: 1px; display:flex; align-items:center; gap:8px;}
+.sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+.bigName { 
+  font-family: "Georgia", serif; 
+  font-size: 32px; 
+  font-weight: 400; 
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255,255,255,0.2);
+  line-height: 1.2;
+}
+
+/* Cards & Layout */
+.content { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.card {
+  background: rgba(255,255,255,0.04);
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border-soft);
+  position: relative;
+}
+.card:hover { border-color: var(--glass-border); background: rgba(255,255,255,0.06); }
+
+/* Internal Card Layouts */
+.label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); font-weight: 700; }
+.reroll-mini { background: none; border: none; color: var(--faint); cursor: pointer; padding: 4px; font-size: 12px; }
+.reroll-mini:hover { color: var(--text); }
+
+.chips { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.chip { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--glass-border-soft); }
+.chip.virtue { background: rgba(120, 255, 220, 0.1); color: var(--success); }
+.chip.vice { background: rgba(255, 90, 130, 0.1); color: var(--danger); }
+.chip.item { background: rgba(255, 215, 0, 0.05); color: var(--gold); border-color: rgba(255, 215, 0, 0.2); }
+
+/* Stat Grid */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.stat-box { 
+  background: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px; text-align: center; border: 1px solid var(--glass-border-soft);
+}
+.stat-val { font-size: 18px; font-weight: 800; display:block; }
+.stat-name { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+/* Secret Reveal Mechanic */
+.secret-blur { filter: blur(6px); cursor: pointer; transition: 0.4s ease; user-select: none; }
+.secret-blur:hover { filter: blur(0); }
+.secret-hint { font-size:11px; color:var(--faint); text-align:center; margin-top:4px; }
+
+/* Sidebar */
+.sidebar { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+input, textarea {
+  background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border-soft); color: white; padding: 12px; border-radius: var(--radius-md); font-size: 13px; width: 100%;
+}
+input:focus { outline: none; border-color: var(--accent); }
+
+/* Buttons */
+button {
+  cursor: pointer; border: 1px solid var(--glass-border-soft); background: rgba(255,255,255,0.05); color: white; padding: 10px 16px; border-radius: var(--radius-md); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+button:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+button.primary { background: var(--accent); color: var(--bg0); border: none; }
+button.primary:hover { opacity: 0.9; box-shadow: 0 0 15px rgba(120,170,255,0.4); }
+button.danger { color: var(--danger); }
+
+.saved-list { margin-top: 10px; max-height: 400px; overflow-y: auto; }
+.saved-item { 
+  padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 8px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent;
+}
+.saved-item:hover { border-color: var(--glass-border-soft); background: rgba(255,255,255,0.06); }
+
+.toast{ position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background: var(--accent); color: var(--bg0); font-weight: 700; padding:10px 20px; border-radius:40px; opacity:0; pointer-events:none; z-index: 999; }
+.toast.show{ opacity:1; bottom: 40px; }
+</style>
+</head>
+
+<body>
+<div class="app">
+  <section class="glass main">
+    <header>
+      <div>
+        <h1>⚔️ Lorebound <span style="font-size:12px; opacity:0.5; font-weight:400; margin-left:10px;">v2.0</span></h1>
+        <div class="sub">Robust NPC & Character Generator</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button id="copyBtn">Copy JSON</button>
+        <button class="primary" id="rerollBtn">Reroll Character</button>
+      </div>
+    </header>
+
+    <div class="content" id="character">
+      </div>
+  </section>
+
+  <aside class="glass sidebar">
+    <div class="label">Archive</div>
+    <input id="saveTitle" placeholder="Label this save..." />
+    <button class="primary" id="saveBtn">Save Character</button>
+    <hr style="width:100%; border:0; border-top:1px solid var(--glass-border-soft); margin:10px 0;">
+    <textarea id="importBox" placeholder="Paste JSON here..."></textarea>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <button id="importBtn">Import</button>
+      <button class="danger" id="clearBtn" style="font-size:11px">Clear All</button>
+    </div>
+    <div id="saves" class="saved-list"></div>
+  </aside>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// --- ROBUST DATA SET ---
+const data = {
+  names: [
+    "Arinoth", "Baelen", "Caelum", "Dravor", "Elara", "Fenris", "Garrick", "Hylia", "Ignis", "Jorun", "Kaelen", "Lirael", "Merrick", "Nyx", "Orin", "Phaedra", "Quintus", "Rurik", "Sylas", "Thalor", "Ulric", "Vesper", "Wren", "Xaloc", "Ysolde", "Zephyr",
+    "Adelaide", "Baron", "Cedric", "Dorian", "Evelyn", "Fiora", "Godfrey", "Helena", "Isolde", "Julian", "Katerina", "Lucian", "Magnus", "Nadia", "Octavia", "Percival", "Quentin", "Rowena", "Sebastian", "Theodora", "Uriel", "Victor", "William", "Xavier", "Yvaine", "Zara"
+  ],
+  epithets: [
+    "the Unquiet", "the Mapless", "the Kind Knife", "the Oathbound", "of the Last Light", "the Silver-Tongued", "the Iron-Hearted", "the Void-Touched", "the Storm-Caller", "the Grave-Walker", "the Sun-Eater", "the Moon-Chaser", "the Star-Weaver", "the Shadow-Dancer", "the Flame-Keeper"
+  ],
+  ancestries: [
+    "Human (Highland)", "Human (Coastal)", "High Elf", "Wood Elf", "Dark Elf", "Mountain Dwarf", "Hill Dwarf", "Tiefling", "Orc", "Half-Orc", "Halfling (Lightfoot)", "Halfling (Stout)", "Dragonborn (Red)", "Dragonborn (Silver)", "Gnome", "Changeling", "Warforged"
+  ],
+  jobs: [
+    "Exiled Knight", "Failed Mage", "Wandering Medic", "Relic Hunter", "Former Cultist", "Shipwrecked Navigator", "Disgraced Noble", "Hedge Wizard", "Pit Fighter", "Royal Spy", "Grave Robber", "Beast Tamer", "Cartographer", "Innkeeper's Child", "Mercenary Captain", "Street Urchin", "Temple Guard"
+  ],
+  traits: [
+    "quietly intense", "warm but guarded", "dangerously charming", "solemn and pious", "curious to a fault", "morbidly witty", "clumsy but lucky", "brash and loud", "calculating and cold", "hopelessly romantic", "paranoid", "serene", "melancholy", "eccentric"
+  ],
+  virtues: [
+    "Mercy", "Loyalty", "Discipline", "Empathy", "Resolve", "Honesty", "Courage", "Wisdom", "Generosity", "Patience", "Hope", "Justice"
+  ],
+  vices: [
+    "Recklessness", "Guilt", "Pride", "Self-doubt", "Obsession", "Greed", "Wrath", "Envy", "Sloth", "Gluttony", "Lust", "Cowardice", "Deceit"
+  ],
+  hooks: [
+    "owes a life-debt to a notorious crime lord", 
+    "is being hunted by a silent, faceless wraith", 
+    "guards a secret map to a sunken city", 
+    "seeks redemption for burning down their own village", 
+    "carries a cursed heirloom that whispers at night",
+    "is slowly turning into stone starting at the fingertips",
+    "knows the true name of a demon prince",
+    "is looking for the six-fingered man who killed their father"
+  ],
+  secrets: [
+    "They are actually a doppelganger of the original person.",
+    "They murdered their sibling to get this position.",
+    "They are unknowingly a warlock patron's vessel.",
+    "They are dying of a magical plague with no cure.",
+    "They are a spy for the main villain.",
+    "They sold their soul for a talent they no longer use."
+  ],
+  items: [
+    "Rusted Iron Key", "Letter from a dead king", "Broken compass", "Bag of strange dust", "Silver locket", "Obsidian dagger", "Deck of marked cards", "Vial of holy water", "Scroll of identifying", "Heavy iron signet ring", "Map of the stars", "Wooden flute", "Bag of caltrops"
+  ],
+  weapons: [
+    "Notched Longsword", "Yew Shortbow", "Pair of Daggers", "Heavy Warhammer", "Quarterstaff", "Crossbow", "Rapier", "Battleaxe", "Spear", "Grimoire"
+  ]
+};
+
+// --- APP LOGIC ---
+let current = {};
+let saves = JSON.parse(localStorage.getItem('lorebound_saves') || '[]');
+
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const roll = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+const toast = t => { 
+  const el=document.getElementById("toast"); el.textContent=t; 
+  el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),2000); 
+};
+
+// Standard Array (15, 14, 13, 12, 10, 8) shuffled
+const generateStats = () => {
+  const s = [16, 14, 13, 11, 10, 8];
+  for (let i = s.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [s[i], s[j]] = [s[j], s[i]];
+  }
+  return { might: s[0], agility: s[1], wits: s[2], spirit: s[3] }; // Using 4 simplified stats
+};
+
+function generate(field = 'all') {
+  if (field === 'all' || field === 'name') current.name = `${pick(data.names)} ${pick(data.epithets)}`;
+  
+  if (field === 'all' || field === 'bio') {
+    current.ancestry = pick(data.ancestries);
+    current.job = pick(data.jobs);
+    current.trait = pick(data.traits);
+  }
+  
+  if (field === 'all' || field === 'stats') current.stats = generateStats();
+
+  if (field === 'all' || field === 'alignment') {
+    current.virtue = pick(data.virtues);
+    current.vice = pick(data.vices);
+  }
+  
+  if (field === 'all' || field === 'inventory') {
+    current.weapon = pick(data.weapons);
+    current.item = pick(data.items);
+  }
+
+  if (field === 'all' || field === 'hook') {
+    current.hook = pick(data.hooks);
+    current.secret = pick(data.secrets);
+  }
+  
+  render();
+}
+
+function render() {
+  document.getElementById("character").innerHTML = `
+    <div class="card">
+      <div class="label-row">
+        <span class="label">Identity</span>
+        <button class="reroll-mini" onclick="generate('name')">⟳ Name</button>
+      </div>
+      <div class="bigName">${current.name}</div>
+      <div class="sub" style="font-size: 15px; margin-bottom:12px;">
+        A ${current.trait} ${current.ancestry} ${current.job}
+      </div>
+      <div class="label-row" style="margin-top:16px; margin-bottom:4px;">
+        <span class="label">Attributes</span>
+        <button class="reroll-mini" onclick="generate('stats')">⟳ Stats</button>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-box"><span class="stat-val">${current.stats.might}</span><span class="stat-name">Might</span></div>
+        <div class="stat-box"><span class="stat-val">${current.stats.agility}</span><span class="stat-name">Agility</span></div>
+        <div class="stat-box"><span class="stat-val">${current.stats.wits}</span><span class="stat-name">Wits</span></div>
+        <div class="stat-box"><span class="stat-val">${current.stats.spirit}</span><span class="stat-name">Spirit</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label-row">
+        <span class="label">Personality & Gear</span>
+        <div style="display:flex; gap:8px;">
+          <button class="reroll-mini" onclick="generate('alignment')">⟳ Psyche</button>
+          <button class="reroll-mini" onclick="generate('inventory')">⟳ Gear</button>
+        </div>
+      </div>
+      <div class="chips">
+        <div class="chip virtue">Virtue: ${current.virtue}</div>
+        <div class="chip vice">Vice: ${current.vice}</div>
+        <div class="chip item">Weapon: ${current.weapon}</div>
+        <div class="chip item">Item: ${current.item}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label-row">
+        <span class="label">The Story</span>
+        <button class="reroll-mini" onclick="generate('hook')">⟳ Plot</button>
+      </div>
+      <div style="line-height:1.5; font-size:14px; color:var(--text); margin-bottom:16px;">
+        <strong>Hook:</strong> This character ${current.hook}.
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; position:relative;">
+        <span class="label" style="color:var(--danger); margin-bottom:4px; display:block;">Dark Secret</span>
+        <div class="secret-blur">${current.secret}</div>
+        <div class="secret-hint">(Hover to Reveal)</div>
+      </div>
+    </div>
+  `;
+  renderSaves();
+}
+
+function renderSaves() {
+  const container = document.getElementById("saves");
+  container.innerHTML = saves.map((s, i) => `
+    <div class="saved-item">
+      <div>
+        <div style="font-weight:700; color:var(--accent)">${s.saveTitle || s.name}</div>
+        <div style="font-size:11px; color:var(--muted)">${s.ancestry} ${s.job}</div>
+      </div>
+      <div style="display:flex; gap:4px;">
+        <button class="reroll-mini" onclick="loadSave(${i})">Load</button>
+        <button class="reroll-mini" onclick="deleteSave(${i})" style="color:var(--danger)">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// --- CONTROLS ---
+document.getElementById("saveBtn").onclick = () => {
+  const title = document.getElementById("saveTitle").value;
+  saves.unshift({...current, saveTitle: title}); // Add to top
+  localStorage.setItem('lorebound_saves', JSON.stringify(saves));
+  document.getElementById("saveTitle").value = '';
+  renderSaves();
+  toast("Character Archived");
+};
+
+document.getElementById("clearBtn").onclick = () => {
+  if(confirm("Permanently delete all saved characters?")) {
+    saves = [];
+    localStorage.removeItem('lorebound_saves');
+    renderSaves();
+  }
+};
+
+document.getElementById("copyBtn").onclick = () => {
+  navigator.clipboard.writeText(JSON.stringify(current, null, 2));
+  toast("JSON Copied");
+};
+
+document.getElementById("importBtn").onclick = () => {
+  try {
+    const imported = JSON.parse(document.getElementById("importBox").value);
+    current = imported;
+    render();
+    toast("Character Imported");
+  } catch(e) { toast("Invalid JSON Data"); }
+};
+
+function deleteSave(i) {
+  saves.splice(i, 1);
+  localStorage.setItem('lorebound_saves', JSON.stringify(saves));
+  renderSaves();
+}
+
+function loadSave(i) {
+  current = saves[i];
+  render();
+  toast("Character Loaded");
+}
+
+document.getElementById("rerollBtn").onclick = () => generate('all');
+
+// Initial Launch
+generate();
+</script>
+</body>
+</html>
