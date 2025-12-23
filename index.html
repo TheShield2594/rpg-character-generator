@@ -254,35 +254,143 @@ button.btn-sec:hover { background: rgba(255,255,255,0.1); }
 <script>
 // --- EXTENDED DATA SET ---
 const data = {
-  names: ["Arinoth", "Baelen", "Caelum", "Dravor", "Elara", "Fenris", "Garrick", "Hylia", "Ignis", "Jorun", "Kaelen", "Lirael", "Merrick", "Nyx", "Orin", "Phaedra", "Quintus", "Rurik", "Sylas", "Thalor", "Ulric", "Vesper", "Wren", "Xaloc", "Ysolde", "Zephyr", "Adelaide", "Baron", "Cedric", "Dorian", "Evelyn", "Fiora", "Godfrey", "Helena", "Isolde", "Julian", "Katerina", "Lucian", "Magnus", "Nadia", "Octavia", "Percival", "Quentin", "Rowena", "Sebastian", "Theodora", "Uriel", "Victor", "William", "Xavier", "Yvaine", "Zara"],
-  epithets: ["the Unquiet", "the Mapless", "the Kind Knife", "the Oathbound", "of the Last Light", "the Silver-Tongued", "the Iron-Hearted", "the Void-Touched", "the Storm-Caller", "the Grave-Walker", "the Sun-Eater", "the Moon-Chaser", "the Star-Weaver", "the Shadow-Dancer", "the Flame-Keeper"],
-  ancestries: ["Human (Highland)", "Human (Coastal)", "High Elf", "Wood Elf", "Dark Elf", "Mountain Dwarf", "Hill Dwarf", "Tiefling", "Orc", "Half-Orc", "Halfling", "Dragonborn", "Gnome", "Changeling", "Warforged"],
-  
-  // Jobs now have 'primary' stats for weighting logic
-  jobs: [
-    { title: "Exiled Knight", primary: ["might", "spirit"] },
-    { title: "Failed Mage", primary: ["wits", "spirit"] },
-    { title: "Wandering Medic", primary: ["wits", "agility"] },
-    { title: "Relic Hunter", primary: ["agility", "wits"] },
-    { title: "Former Cultist", primary: ["spirit", "wits"] },
-    { title: "Shipwrecked Navigator", primary: ["wits", "agility"] },
-    { title: "Disgraced Noble", primary: ["spirit", "wits"] },
-    { title: "Hedge Wizard", primary: ["wits", "spirit"] },
-    { title: "Pit Fighter", primary: ["might", "agility"] },
-    { title: "Royal Spy", primary: ["agility", "wits"] },
-    { title: "Grave Robber", primary: ["agility", "might"] },
-    { title: "Beast Tamer", primary: ["spirit", "agility"] },
-    { title: "Mercenary Captain", primary: ["might", "wits"] },
-    { title: "Street Urchin", primary: ["agility", "wits"] },
-    { title: "Temple Guard", primary: ["might", "spirit"] }
+  names: [
+    "Aelric", "Bram", "Cia", "Dax", "Elion", "Faelan", "Gorm", "Hestia", "Iris", "Jax", "Kael", "Lysa", "Maren", "Nyx", "Orin", "Prynne", "Quinn", "Rael", "Sia", "Torin", "Ulva", "Vane", "Wyla", "Xan", "Yori", "Zane",
+    "Aurelius", "Beatrix", "Cassian", "Desdemona", "Evander", "Fenwick", "Ginevra", "Hadrian", "Isadora", "Julius", "Killian", "Leander", "Magnolia", "Nathaniel", "Octavia", "Phineas", "Quill", "Rosalind", "Silas", "Thaddeus", "Uriah", "Valerius", "Winifred", "Xavier", "Yvaine", "Zephyr",
+    "Artemis", "Bjorn", "Calliope", "Dante", "Elowen", "Freya", "Gideon", "Helios", "Indra", "Juno", "Kratos", "Loki", "Morrigan", "Nero", "Odin", "Persephone", "Qadir", "Ragnar", "Selene", "Thor", "Ulysses", "Valkyrie", "Wolf", "Xena", "Yara", "Zeus",
+    "Ash", "Brook", "Clay", "Dale", "Ember", "Flint", "Glen", "Heath", "Ivy", "Jasper", "Kestrel", "Lark", "Moss", "North", "Oak", "Pine", "Quartz", "Reed", "Sage", "Thorn", "Umber", "Vine", "Willow", "Xylia", "Yarrow", "Zinnia"
   ],
-  traits: ["quietly intense", "warm but guarded", "dangerously charming", "solemn and pious", "curious to a fault", "morbidly witty", "clumsy but lucky", "brash and loud", "calculating and cold", "hopelessly romantic", "paranoid", "serene", "melancholy", "eccentric"],
-  virtues: ["Mercy", "Loyalty", "Discipline", "Empathy", "Resolve", "Honesty", "Courage", "Wisdom", "Generosity", "Patience", "Hope", "Justice"],
-  vices: ["Recklessness", "Guilt", "Pride", "Self-doubt", "Obsession", "Greed", "Wrath", "Envy", "Sloth", "Gluttony", "Lust", "Cowardice", "Deceit"],
-  hooks: ["owes a life-debt to a notorious crime lord", "is being hunted by a silent, faceless wraith", "guards a secret map to a sunken city", "seeks redemption for burning down their own village", "carries a cursed heirloom that whispers at night", "is slowly turning into stone starting at the fingertips", "knows the true name of a demon prince", "is looking for the six-fingered man who killed their father"],
-  secrets: ["They are actually a doppelganger.", "They murdered their sibling for this rank.", "They are unknowingly a warlock vessel.", "They are dying of a magical plague.", "They are a spy for the enemy.", "They sold their soul for a talent they lost."],
-  items: ["Rusted Iron Key", "Letter from a dead king", "Broken compass", "Bag of strange dust", "Silver locket", "Obsidian dagger", "Deck of marked cards", "Vial of holy water", "Scroll of identifying", "Heavy iron signet ring", "Map of the stars", "Wooden flute", "Bag of caltrops"],
-  weapons: ["Notched Longsword", "Yew Shortbow", "Pair of Daggers", "Heavy Warhammer", "Quarterstaff", "Crossbow", "Rapier", "Battleaxe", "Spear", "Grimoire"]
+  epithets: [
+    "the Unbroken", "the Star-Eyed", "the Silent", "the Oath-Keeper", "the Storm-Bringer", "the Void-Walker", 
+    "the Iron-Willed", "the Silver-Tongued", "the Shadow-Weaver", "the Light-Bringer", "the Dream-Chaser", 
+    "the Soul-Eater", "the Fate-Spinner", "the Time-Bender", "the World-Breaker", "the Hope-Bringer", 
+    "of the Hidden Path", "of the Frozen Wastes", "of the Burning Sands", "of the Whispering Woods", 
+    "of the Sunken City", "of the High Heavens", "of the Deep Hells", "the Kinslayer", "the Peacekeeper",
+    "the Last Sentinel", "the Gilded Hand", "the Twice-Orphaned", "the Grave-Digger", "the Copper-Heart"
+  ],
+  ancestries: [
+    "Human (Imperial)", "Human (Nomad)", "Human (Urban)", "High Elf", "Wood Elf", "Dark Elf (Drow)", "Sea Elf", 
+    "Mountain Dwarf", "Hill Dwarf", "Duergar", "Orc", "Half-Orc", "Goblin", "Hobgoblin", "Bugbear", 
+    "Halfling (Stout)", "Halfling (Lightfoot)", "Gnome (Rock)", "Gnome (Forest)", "Deep Gnome", 
+    "Dragonborn (Chromatic)", "Dragonborn (Metallic)", "Tiefling (Infernal)", "Tiefling (Abyssal)", "Aasimar", 
+    "Genasi (Fire)", "Genasi (Water)", "Genasi (Earth)", "Genasi (Air)", "Goliath", "Firbolg", "Kenku", 
+    "Aarakocra", "Tabaxi", "Triton", "Yuan-Ti", "Changeling", "Shifter", "Warforged", "Centaur", "Minotaur", 
+    "Satyr", "Fairy", "Harengon", "Lizardfolk", "Kobold"
+  ],
+  jobs: [
+    // WARRIORS (Might/Agility/Spirit)
+    { title: "Sellsword", primary: ["might", "agility"] },
+    { title: "Gladiator", primary: ["might", "spirit"] },
+    { title: "Knight Errant", primary: ["might", "spirit"] },
+    { title: "Bounty Hunter", primary: ["agility", "wits"] },
+    { title: "City Watch", primary: ["might", "wits"] },
+    { title: "Tribal Warrior", primary: ["might", "agility"] },
+    { title: "Viking Raider", primary: ["might", "spirit"] },
+    { title: "Samurai", primary: ["agility", "spirit"] },
+    { title: "Temple Guardian", primary: ["might", "spirit"] },
+    
+    // ROGUES & EXPERTS (Agility/Wits)
+    { title: "Master Thief", primary: ["agility", "wits"] },
+    { title: "Assassin", primary: ["agility", "wits"] },
+    { title: "Smuggler", primary: ["agility", "spirit"] },
+    { title: "Spy", primary: ["wits", "agility"] },
+    { title: "Scout", primary: ["agility", "wits"] },
+    { title: "Pirate", primary: ["agility", "spirit"] },
+    { title: "Dungeon Delver", primary: ["wits", "agility"] },
+    { title: "Forgery Artist", primary: ["wits", "agility"] },
+    
+    // MAGES & SCHOLARS (Wits/Spirit)
+    { title: "Archmage", primary: ["wits", "spirit"] },
+    { title: "Necromancer", primary: ["wits", "spirit"] },
+    { title: "Druid", primary: ["spirit", "wits"] },
+    { title: "Alchemist", primary: ["wits", "agility"] },
+    { title: "Archaeologist", primary: ["wits", "agility"] },
+    { title: "Cult Leader", primary: ["spirit", "wits"] },
+    { title: "Soothsayer", primary: ["spirit", "wits"] },
+    { title: "Runesmith", primary: ["wits", "might"] },
+    { title: "Battle Mage", primary: ["wits", "might"] },
+    { title: "Exorcist", primary: ["spirit", "will"] },
+    
+    // SOCIAL & OTHERS
+    { title: "Merchant Prince", primary: ["spirit", "wits"] },
+    { title: "Bard", primary: ["spirit", "agility"] },
+    { title: "Innkeeper", primary: ["spirit", "might"] },
+    { title: "Ship Captain", primary: ["wits", "spirit"] },
+    { title: "Politician", primary: ["spirit", "wits"] },
+    { title: "Blacksmith", primary: ["might", "wits"] },
+    { title: "Chef", primary: ["wits", "agility"] },
+    { title: "Doctor", primary: ["wits", "spirit"] }
+  ],
+  traits: [
+    "stoic", "cheerful", "grumpy", "anxious", "confident", "arrogant", "humble", "brave", "cowardly", "greedy", 
+    "generous", "loyal", "treacherous", "honest", "deceitful", "curious", "indifferent", "passionate", "cold", 
+    "logical", "emotional", "superstitious", "skeptical", "pious", "atheist", "elegant", "clumsy", "graceful", 
+    "loud", "quiet", "charming", "rude", "witty", "dull", "optimistic", "pessimistic", "realistic", "dreamy", 
+    "focused", "distracted", "clean", "dirty", "refined", "crude", "gentle", "rough", "forgiving", "vengeful"
+  ],
+  virtues: [
+    "Justice", "Temperance", "Fortitude", "Prudence", "Faith", "Hope", "Charity", "Humility", "Patience", 
+    "Kindness", "Diligence", "Chastity", "Integrity", "Honor", "Compassion", "Forgiveness", "Selflessness", 
+    "Responsibility", "Respect", "Fairness", "Trustworthiness", "Loyalty", "Courage", "Wisdom", "Moderation"
+  ],
+  vices: [
+    "Lust", "Gluttony", "Greed", "Sloth", "Wrath", "Envy", "Pride", "Vanity", "Avarice", "Cowardice", 
+    "Deceit", "Treachery", "Cruelty", "Indifference", "Laziness", "Impatience", "Arrogance", "Selfishness", 
+    "Dishonesty", "Disloyalty", "Recklessness", "Suspicion", "Jealousy", "Spite", "Malice"
+  ],
+  hooks: [
+    "woke up in a morgue with a toe tag but no memory of dying",
+    "has a key that glows when pointing north, but fits no lock",
+    "is being followed by a stray cat that is definitely a polymorphed wizard",
+    "owes a favor to a Fae Queen that must be repaid by the next full moon",
+    "stole a map from a dead adventurer that leads to the 'World's End'",
+    "hears the thoughts of people who are about to die",
+    "cannot step on holy ground without their skin smoking",
+    "is searching for their twin who was kidnapped by sky pirates",
+    "has a shadow that moves independently of their body",
+    "carries a jar containing the last breath of a dying god",
+    "is convinced they are a character in a story being written by a madman",
+    "must consume a gemstone every week or turn to stone",
+    "is on the run from a marriage arrangement with a vampire lord",
+    "accidentally released a demon and is trying to capture it before anyone knows",
+    "has a bounty on their head for a crime they actually didn't commit... this time",
+    "is the sole survivor of a village that vanished overnight",
+    "wears a mask they can never take off",
+    "is looking for the ingredients to brew a potion of immortality"
+  ],
+  secrets: [
+    "They are actually a dragon in humanoid form, stuck this way.",
+    "They killed the original hero and took their place.",
+    "They are a time traveler from a bad future trying to fix it.",
+    "They are unknowingly a sleeper agent for the main villain.",
+    "They are dead and just a very strong ghost possessing a body.",
+    "They are the illegitimate child of the King.",
+    "They sold their firstborn for magical power.",
+    "They are addicted to a potion that suppresses their true monstrous form.",
+    "They know the location of a weapon that could destroy the world.",
+    "They are actually three kobolds in a trench coat.",
+    "They have a phylactery hidden somewhere, making them technically a lich.",
+    "They are a construct (robot) who believes they are human.",
+    "They are wanted in three kingdoms for 'regicide'.",
+    "They are a fallen angel seeking a way back to grace.",
+    "They are a spy for a rival dimension."
+  ],
+  items: [
+    "Bag of Holding (full of sand)", "Immovable Rod", "Decanter of Endless Water", "Cloak of Billowing", 
+    "Sending Stones", "Alchemy Jug", "Driftglobe", "Goggles of Night", "Hat of Disguise", "Lantern of Revealing", 
+    "Rope of Climbing", "Wind Fan", "Winged Boots", "Broom of Flying", "Carpet of Flying", "Crystal Ball", 
+    "Cube of Force", "Deck of Many Things (Missing the good cards)", "Figurine of Wondrous Power", "Gem of Seeing", 
+    "Horn of Blasting", "Iron Bands of Binding", "Mirror of Life Trapping", "Pearl of Power", "Ring of Invisibility", 
+    "Rod of Lordly Might", "Sphere of Annihilation (Tiny)", "Staff of Power", "Sword of Sharpness", "Vorpal Sword", 
+    "Well of Many Worlds", "Apparatus of Kwalish", "Daern's Instant Fortress", "Mighty Servant of Leuk-o", 
+    "Orrery of the Wanderer", "Ring of Winter", "Staff of the Forgotten One", "Stone of Golorr", "Wand of Orcus"
+  ],
+  weapons: [
+    "Longsword", "Shortsword", "Greatsword", "Rapier", "Scimitar", "Dagger", "Handaxe", "Battleaxe", "Greataxe", 
+    "Warhammer", "Maul", "Flail", "Morningstar", "War Pick", "Spear", "Lance", "Halberd", "Glaive", "Pike", 
+    "Trident", "Quarterstaff", "Club", "Greatclub", "Mace", "Sickle", "Shortbow", "Longbow", "Light Crossbow", 
+    "Heavy Crossbow", "Hand Crossbow", "Sling", "Dart", "Blowgun", "Net", "Whip"
+  ]
 };
 
 // --- LOGIC ---
@@ -536,3 +644,4 @@ generate();
 </script>
 </body>
 </html>
+
