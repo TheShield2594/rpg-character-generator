@@ -3,153 +3,225 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Lorebound — Advanced Character Generator</title>
+<title>Lorebound v3.0 — Advanced Character Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
 <style>
 :root{
   --bg0:#05070d;
-  --bg1:#0a0f1f;
-  --glass-bg: rgba(255,255,255,0.10);
-  --glass-border: rgba(255,255,255,0.25);
-  --glass-border-soft: rgba(255,255,255,0.12);
+  --bg1:#0b1021;
+  --glass-bg: rgba(20, 25, 40, 0.6);
+  --glass-border: rgba(255,255,255,0.15);
+  --glass-highlight: rgba(255,255,255,0.05);
   --accent: #78aaff;
+  --accent-glow: rgba(120,170,255,0.3);
   --success: #78ffdc;
   --danger: #ff5a82;
   --gold: #ffd700;
-  --text: rgba(255,255,255,.94);
-  --muted: rgba(255,255,255,.65);
-  --faint: rgba(255,255,255,.35);
+  --text: #e2e8f0;
+  --muted: #94a3b8;
   --radius-xl: 24px;
-  --radius-lg: 16px;
-  --radius-md: 10px;
-  --shadow: 0 20px 50px rgba(0,0,0,0.5);
+  --radius-md: 12px;
+  --font-head: 'Cinzel', serif;
+  --font-body: 'Inter', sans-serif;
 }
 
-*{ box-sizing:border-box; transition: all 0.2s ease; }
+*{ box-sizing:border-box; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
 
 body{
   margin:0;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-body);
   color: var(--text);
   min-height:100vh;
-  padding:20px;
-  background: radial-gradient(circle at 15% 20%, rgba(120,170,255,.15), transparent 50%),
-              radial-gradient(circle at 85% 80%, rgba(255,120,180,.1), transparent 50%),
-              var(--bg0);
+  background-color: var(--bg0);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(86, 68, 172, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(55, 137, 164, 0.15) 0px, transparent 50%);
   display: flex;
   justify-content: center;
+  padding: 20px;
+}
+
+/* Noise Texture Overlay */
+body::before {
+  content: "";
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: -1;
 }
 
 .app{
-  width: 100%;
-  max-width: 1100px;
-  display: grid;
-  grid-template-columns: 1.4fr 0.8fr;
-  gap: 20px;
-  align-items: start;
+  width: 100%; max-width: 1200px;
+  display: grid; grid-template-columns: 1fr 340px;
+  gap: 24px; align-items: start;
 }
 
 @media(max-width:900px){ .app{ grid-template-columns: 1fr; } }
 
-/* Glass Base */
+/* Glass Components */
 .glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid var(--glass-border-soft);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 
+/* Typography Overrides */
+h1, h2, h3, .bigName, .stat-val { font-family: var(--font-head); }
+
 /* Header */
-header { padding: 24px; border-bottom: 1px solid var(--glass-border-soft); display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:12px; }
-h1 { margin:0; font-size: 22px; letter-spacing: 1px; display:flex; align-items:center; gap:8px;}
-.sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
-
-.bigName { 
-  font-family: "Georgia", serif; 
-  font-size: 32px; 
-  font-weight: 400; 
-  color: #fff;
-  text-shadow: 0 0 20px rgba(255,255,255,0.2);
-  line-height: 1.2;
+header { 
+  padding: 24px 32px; 
+  border-bottom: 1px solid var(--glass-border); 
+  display: flex; justify-content: space-between; align-items: center; 
+  background: linear-gradient(to right, rgba(255,255,255,0.02), transparent);
 }
+h1 { margin:0; font-size: 24px; color:white; display:flex; align-items:baseline; gap:10px; text-shadow: 0 0 20px rgba(120,170,255,0.5); }
+.version { font-family: var(--font-body); font-size: 11px; background: var(--glass-border); padding: 2px 8px; border-radius: 12px; opacity: 0.8; }
 
-/* Cards & Layout */
-.content { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+/* Main Content Area */
+.content { padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+
+/* Cards */
 .card {
-  background: rgba(255,255,255,0.04);
-  padding: 20px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--glass-border-soft);
+  background: rgba(0,0,0,0.2);
+  padding: 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
   position: relative;
 }
-.card:hover { border-color: var(--glass-border); background: rgba(255,255,255,0.06); }
+.card:hover { border-color: var(--accent); background: rgba(0,0,0,0.3); }
 
-/* Internal Card Layouts */
-.label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); font-weight: 700; }
-.reroll-mini { background: none; border: none; color: var(--faint); cursor: pointer; padding: 4px; font-size: 12px; }
-.reroll-mini:hover { color: var(--text); }
-
-.chips { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-.chip { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--glass-border-soft); }
-.chip.virtue { background: rgba(120, 255, 220, 0.1); color: var(--success); }
-.chip.vice { background: rgba(255, 90, 130, 0.1); color: var(--danger); }
-.chip.item { background: rgba(255, 215, 0, 0.05); color: var(--gold); border-color: rgba(255, 215, 0, 0.2); }
-
-/* Stat Grid */
-.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
-.stat-box { 
-  background: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px; text-align: center; border: 1px solid var(--glass-border-soft);
+/* Profile Layout */
+.profile-header { display: flex; gap: 24px; align-items: center; }
+.avatar { 
+  width: 100px; height: 100px; 
+  background: #000; border-radius: 50%; 
+  border: 2px solid var(--glass-border); 
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+  overflow: hidden;
 }
-.stat-val { font-size: 18px; font-weight: 800; display:block; }
-.stat-name { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Secret Reveal Mechanic */
-.secret-blur { filter: blur(6px); cursor: pointer; transition: 0.4s ease; user-select: none; }
-.secret-blur:hover { filter: blur(0); }
-.secret-hint { font-size:11px; color:var(--faint); text-align:center; margin-top:4px; }
+.bigName { 
+  font-size: 38px; color: #fff; line-height: 1.1; margin-bottom: 8px;
+  background: linear-gradient(180deg, #fff, #ccc);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* Controls */
+.label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); font-weight: 700; opacity: 0.9; }
+.reroll-mini { 
+  background: transparent; border: 1px solid var(--glass-border); 
+  color: var(--muted); cursor: pointer; padding: 4px 10px; 
+  font-size: 11px; border-radius: 20px; 
+}
+.reroll-mini:hover { color: white; border-color: var(--accent); background: rgba(120,170,255,0.1); }
+
+/* Stats */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+.stat-box { 
+  background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px 8px; 
+  text-align: center; border: 1px solid transparent; display:flex; flex-direction:column; gap:4px;
+}
+.stat-box.high { border-color: rgba(120,255,220,0.3); background: rgba(120,255,220,0.05); }
+.stat-val { font-size: 24px; font-weight: 700; color: white; }
+.stat-name { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-body); }
+
+/* Derived Stats (HP/AC) */
+.derived-stats { display:flex; gap: 12px; margin-top: 12px; }
+.derived-pill { 
+  flex: 1; background: #000; border: 1px solid var(--glass-border); 
+  padding: 8px; border-radius: 8px; display:flex; justify-content: space-between; align-items: center; 
+  font-size: 13px; color: var(--muted);
+}
+.derived-val { color: white; font-weight: 700; }
+
+/* Chips */
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { 
+  padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; 
+  border: 1px solid var(--glass-border); background: rgba(255,255,255,0.03);
+}
+.chip.virtue { border-color: rgba(120, 255, 220, 0.4); color: var(--success); }
+.chip.vice { border-color: rgba(255, 90, 130, 0.4); color: var(--danger); }
+.chip.gold { border-color: rgba(255, 215, 0, 0.4); color: var(--gold); }
+
+/* Secret */
+.secret-container {
+  background: repeating-linear-gradient(45deg, rgba(0,0,0,0.2), rgba(0,0,0,0.2) 10px, rgba(0,0,0,0.3) 10px, rgba(0,0,0,0.3) 20px);
+  padding: 16px; border-radius: 8px; text-align: center; cursor: pointer; border: 1px dashed var(--glass-border);
+}
+.secret-container.revealed { background: rgba(0,0,0,0.4); border-style: solid; text-align: left;}
+.secret-text { filter: blur(8px); opacity: 0.7; transition: 0.5s; }
+.revealed .secret-text { filter: blur(0); opacity: 1; color: var(--danger); font-weight: 600; }
+.secret-hint { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-top: 8px; color: var(--muted); }
+.revealed .secret-hint { display: none; }
 
 /* Sidebar */
-.sidebar { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.sidebar { padding: 24px; display: flex; flex-direction: column; gap: 16px; height: fit-content; position: sticky; top: 20px; }
 input, textarea {
-  background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border-soft); color: white; padding: 12px; border-radius: var(--radius-md); font-size: 13px; width: 100%;
+  background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); 
+  color: white; padding: 12px; border-radius: var(--radius-md); 
+  font-family: var(--font-body); width: 100%;
 }
-input:focus { outline: none; border-color: var(--accent); }
+input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
 
 /* Buttons */
-button {
-  cursor: pointer; border: 1px solid var(--glass-border-soft); background: rgba(255,255,255,0.05); color: white; padding: 10px 16px; border-radius: var(--radius-md); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;
+button.btn-main {
+  cursor: pointer; border: none; 
+  background: var(--accent); color: var(--bg0); 
+  padding: 12px 20px; border-radius: var(--radius-md); 
+  font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--font-body); text-transform: uppercase; font-size: 12px; letter-spacing: 1px;
 }
-button:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
-button.primary { background: var(--accent); color: var(--bg0); border: none; }
-button.primary:hover { opacity: 0.9; box-shadow: 0 0 15px rgba(120,170,255,0.4); }
-button.danger { color: var(--danger); }
+button.btn-main:hover { filter: brightness(1.2); box-shadow: 0 0 20px var(--accent-glow); }
+button.btn-sec { 
+  background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border); 
+}
+button.btn-sec:hover { background: rgba(255,255,255,0.1); }
 
-.saved-list { margin-top: 10px; max-height: 400px; overflow-y: auto; }
+.saved-list { max-height: 400px; overflow-y: auto; padding-right: 4px; }
+/* Scrollbar styling */
+.saved-list::-webkit-scrollbar { width: 6px; }
+.saved-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
 .saved-item { 
-  padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 8px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent;
+  padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 8px; 
+  font-size: 13px; display: flex; justify-content: space-between; align-items: center;
+  border-left: 2px solid transparent;
 }
-.saved-item:hover { border-color: var(--glass-border-soft); background: rgba(255,255,255,0.06); }
+.saved-item:hover { background: rgba(255,255,255,0.06); border-left-color: var(--accent); }
 
-.toast{ position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background: var(--accent); color: var(--bg0); font-weight: 700; padding:10px 20px; border-radius:40px; opacity:0; pointer-events:none; z-index: 999; }
-.toast.show{ opacity:1; bottom: 40px; }
+.toast{ 
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px); 
+  background: white; color: var(--bg0); font-weight: 700; padding:12px 30px; border-radius:40px; 
+  opacity:0; pointer-events:none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 
 <body>
+
 <div class="app">
   <section class="glass main">
     <header>
       <div>
-        <h1>⚔️ Lorebound <span style="font-size:12px; opacity:0.5; font-weight:400; margin-left:10px;">v2.0</span></h1>
-        <div class="sub">Robust NPC & Character Generator</div>
+        <h1>⚔️ Lorebound <span class="version">v3.0</span></h1>
+        <div style="font-size: 13px; color: var(--muted); margin-top: 4px;">Procedural Character Engine</div>
       </div>
       <div style="display:flex; gap:8px;">
-        <button id="copyBtn">Copy JSON</button>
-        <button class="primary" id="rerollBtn">Reroll Character</button>
+        <button class="btn-main btn-sec" id="copyMdBtn">MD</button>
+        <button class="btn-main btn-sec" id="copyBtn">JSON</button>
+        <button class="btn-main" id="rerollBtn">Reroll All</button>
       </div>
     </header>
 
@@ -158,73 +230,62 @@ button.danger { color: var(--danger); }
   </section>
 
   <aside class="glass sidebar">
-    <div class="label">Archive</div>
-    <input id="saveTitle" placeholder="Label this save..." />
-    <button class="primary" id="saveBtn">Save Character</button>
-    <hr style="width:100%; border:0; border-top:1px solid var(--glass-border-soft); margin:10px 0;">
-    <textarea id="importBox" placeholder="Paste JSON here..."></textarea>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-      <button id="importBtn">Import</button>
-      <button class="danger" id="clearBtn" style="font-size:11px">Clear All</button>
+    <div class="label">Library</div>
+    <div style="display:flex; gap:8px;">
+      <input id="saveTitle" placeholder="Character Label..." />
+      <button class="btn-main" id="saveBtn" style="padding:0 16px;">Save</button>
     </div>
+    
     <div id="saves" class="saved-list"></div>
+    
+    <hr style="width:100%; border:0; border-top:1px solid var(--glass-border); margin:4px 0;">
+    
+    <div class="label">Data Management</div>
+    <textarea id="importBox" rows="3" placeholder="Paste JSON string..."></textarea>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <button class="btn-main btn-sec" id="importBtn">Import</button>
+      <button class="btn-main btn-sec" id="clearBtn" style="color:var(--danger); border-color:rgba(255,90,130,0.3)">Reset</button>
+    </div>
   </aside>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// --- ROBUST DATA SET ---
+// --- EXTENDED DATA SET ---
 const data = {
-  names: [
-    "Arinoth", "Baelen", "Caelum", "Dravor", "Elara", "Fenris", "Garrick", "Hylia", "Ignis", "Jorun", "Kaelen", "Lirael", "Merrick", "Nyx", "Orin", "Phaedra", "Quintus", "Rurik", "Sylas", "Thalor", "Ulric", "Vesper", "Wren", "Xaloc", "Ysolde", "Zephyr",
-    "Adelaide", "Baron", "Cedric", "Dorian", "Evelyn", "Fiora", "Godfrey", "Helena", "Isolde", "Julian", "Katerina", "Lucian", "Magnus", "Nadia", "Octavia", "Percival", "Quentin", "Rowena", "Sebastian", "Theodora", "Uriel", "Victor", "William", "Xavier", "Yvaine", "Zara"
-  ],
-  epithets: [
-    "the Unquiet", "the Mapless", "the Kind Knife", "the Oathbound", "of the Last Light", "the Silver-Tongued", "the Iron-Hearted", "the Void-Touched", "the Storm-Caller", "the Grave-Walker", "the Sun-Eater", "the Moon-Chaser", "the Star-Weaver", "the Shadow-Dancer", "the Flame-Keeper"
-  ],
-  ancestries: [
-    "Human (Highland)", "Human (Coastal)", "High Elf", "Wood Elf", "Dark Elf", "Mountain Dwarf", "Hill Dwarf", "Tiefling", "Orc", "Half-Orc", "Halfling (Lightfoot)", "Halfling (Stout)", "Dragonborn (Red)", "Dragonborn (Silver)", "Gnome", "Changeling", "Warforged"
-  ],
+  names: ["Arinoth", "Baelen", "Caelum", "Dravor", "Elara", "Fenris", "Garrick", "Hylia", "Ignis", "Jorun", "Kaelen", "Lirael", "Merrick", "Nyx", "Orin", "Phaedra", "Quintus", "Rurik", "Sylas", "Thalor", "Ulric", "Vesper", "Wren", "Xaloc", "Ysolde", "Zephyr", "Adelaide", "Baron", "Cedric", "Dorian", "Evelyn", "Fiora", "Godfrey", "Helena", "Isolde", "Julian", "Katerina", "Lucian", "Magnus", "Nadia", "Octavia", "Percival", "Quentin", "Rowena", "Sebastian", "Theodora", "Uriel", "Victor", "William", "Xavier", "Yvaine", "Zara"],
+  epithets: ["the Unquiet", "the Mapless", "the Kind Knife", "the Oathbound", "of the Last Light", "the Silver-Tongued", "the Iron-Hearted", "the Void-Touched", "the Storm-Caller", "the Grave-Walker", "the Sun-Eater", "the Moon-Chaser", "the Star-Weaver", "the Shadow-Dancer", "the Flame-Keeper"],
+  ancestries: ["Human (Highland)", "Human (Coastal)", "High Elf", "Wood Elf", "Dark Elf", "Mountain Dwarf", "Hill Dwarf", "Tiefling", "Orc", "Half-Orc", "Halfling", "Dragonborn", "Gnome", "Changeling", "Warforged"],
+  
+  // Jobs now have 'primary' stats for weighting logic
   jobs: [
-    "Exiled Knight", "Failed Mage", "Wandering Medic", "Relic Hunter", "Former Cultist", "Shipwrecked Navigator", "Disgraced Noble", "Hedge Wizard", "Pit Fighter", "Royal Spy", "Grave Robber", "Beast Tamer", "Cartographer", "Innkeeper's Child", "Mercenary Captain", "Street Urchin", "Temple Guard"
+    { title: "Exiled Knight", primary: ["might", "spirit"] },
+    { title: "Failed Mage", primary: ["wits", "spirit"] },
+    { title: "Wandering Medic", primary: ["wits", "agility"] },
+    { title: "Relic Hunter", primary: ["agility", "wits"] },
+    { title: "Former Cultist", primary: ["spirit", "wits"] },
+    { title: "Shipwrecked Navigator", primary: ["wits", "agility"] },
+    { title: "Disgraced Noble", primary: ["spirit", "wits"] },
+    { title: "Hedge Wizard", primary: ["wits", "spirit"] },
+    { title: "Pit Fighter", primary: ["might", "agility"] },
+    { title: "Royal Spy", primary: ["agility", "wits"] },
+    { title: "Grave Robber", primary: ["agility", "might"] },
+    { title: "Beast Tamer", primary: ["spirit", "agility"] },
+    { title: "Mercenary Captain", primary: ["might", "wits"] },
+    { title: "Street Urchin", primary: ["agility", "wits"] },
+    { title: "Temple Guard", primary: ["might", "spirit"] }
   ],
-  traits: [
-    "quietly intense", "warm but guarded", "dangerously charming", "solemn and pious", "curious to a fault", "morbidly witty", "clumsy but lucky", "brash and loud", "calculating and cold", "hopelessly romantic", "paranoid", "serene", "melancholy", "eccentric"
-  ],
-  virtues: [
-    "Mercy", "Loyalty", "Discipline", "Empathy", "Resolve", "Honesty", "Courage", "Wisdom", "Generosity", "Patience", "Hope", "Justice"
-  ],
-  vices: [
-    "Recklessness", "Guilt", "Pride", "Self-doubt", "Obsession", "Greed", "Wrath", "Envy", "Sloth", "Gluttony", "Lust", "Cowardice", "Deceit"
-  ],
-  hooks: [
-    "owes a life-debt to a notorious crime lord", 
-    "is being hunted by a silent, faceless wraith", 
-    "guards a secret map to a sunken city", 
-    "seeks redemption for burning down their own village", 
-    "carries a cursed heirloom that whispers at night",
-    "is slowly turning into stone starting at the fingertips",
-    "knows the true name of a demon prince",
-    "is looking for the six-fingered man who killed their father"
-  ],
-  secrets: [
-    "They are actually a doppelganger of the original person.",
-    "They murdered their sibling to get this position.",
-    "They are unknowingly a warlock patron's vessel.",
-    "They are dying of a magical plague with no cure.",
-    "They are a spy for the main villain.",
-    "They sold their soul for a talent they no longer use."
-  ],
-  items: [
-    "Rusted Iron Key", "Letter from a dead king", "Broken compass", "Bag of strange dust", "Silver locket", "Obsidian dagger", "Deck of marked cards", "Vial of holy water", "Scroll of identifying", "Heavy iron signet ring", "Map of the stars", "Wooden flute", "Bag of caltrops"
-  ],
-  weapons: [
-    "Notched Longsword", "Yew Shortbow", "Pair of Daggers", "Heavy Warhammer", "Quarterstaff", "Crossbow", "Rapier", "Battleaxe", "Spear", "Grimoire"
-  ]
+  traits: ["quietly intense", "warm but guarded", "dangerously charming", "solemn and pious", "curious to a fault", "morbidly witty", "clumsy but lucky", "brash and loud", "calculating and cold", "hopelessly romantic", "paranoid", "serene", "melancholy", "eccentric"],
+  virtues: ["Mercy", "Loyalty", "Discipline", "Empathy", "Resolve", "Honesty", "Courage", "Wisdom", "Generosity", "Patience", "Hope", "Justice"],
+  vices: ["Recklessness", "Guilt", "Pride", "Self-doubt", "Obsession", "Greed", "Wrath", "Envy", "Sloth", "Gluttony", "Lust", "Cowardice", "Deceit"],
+  hooks: ["owes a life-debt to a notorious crime lord", "is being hunted by a silent, faceless wraith", "guards a secret map to a sunken city", "seeks redemption for burning down their own village", "carries a cursed heirloom that whispers at night", "is slowly turning into stone starting at the fingertips", "knows the true name of a demon prince", "is looking for the six-fingered man who killed their father"],
+  secrets: ["They are actually a doppelganger.", "They murdered their sibling for this rank.", "They are unknowingly a warlock vessel.", "They are dying of a magical plague.", "They are a spy for the enemy.", "They sold their soul for a talent they lost."],
+  items: ["Rusted Iron Key", "Letter from a dead king", "Broken compass", "Bag of strange dust", "Silver locket", "Obsidian dagger", "Deck of marked cards", "Vial of holy water", "Scroll of identifying", "Heavy iron signet ring", "Map of the stars", "Wooden flute", "Bag of caltrops"],
+  weapons: ["Notched Longsword", "Yew Shortbow", "Pair of Daggers", "Heavy Warhammer", "Quarterstaff", "Crossbow", "Rapier", "Battleaxe", "Spear", "Grimoire"]
 };
 
-// --- APP LOGIC ---
+// --- LOGIC ---
 let current = {};
 let saves = JSON.parse(localStorage.getItem('lorebound_saves') || '[]');
 
@@ -232,29 +293,61 @@ const pick = a => a[Math.floor(Math.random()*a.length)];
 const roll = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 const toast = t => { 
   const el=document.getElementById("toast"); el.textContent=t; 
-  el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),2000); 
+  el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),2500); 
 };
 
-// Standard Array (15, 14, 13, 12, 10, 8) shuffled
-const generateStats = () => {
-  const s = [16, 14, 13, 11, 10, 8];
-  for (let i = s.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [s[i], s[j]] = [s[j], s[i]];
-  }
-  return { might: s[0], agility: s[1], wits: s[2], spirit: s[3] }; // Using 4 simplified stats
+// Logic: Weighted Stat Generation based on Job
+const generateStats = (jobData) => {
+  // Standard Array
+  let pool = [16, 14, 13, 11, 10, 8];
+  let stats = { might: 10, agility: 10, wits: 10, spirit: 10 };
+  
+  // Identify priority stats
+  const primaries = jobData ? jobData.primary : [];
+  const others = Object.keys(stats).filter(k => !primaries.includes(k));
+  
+  // Assign highest values to primary stats
+  primaries.forEach(stat => {
+    const valIndex = Math.floor(Math.random() * 2); // Pick one of top 2 remaining
+    stats[stat] = pool.splice(valIndex, 1)[0];
+  });
+  
+  // Randomize remainder
+  others.forEach(stat => {
+    const valIndex = Math.floor(Math.random() * pool.length);
+    stats[stat] = pool.splice(valIndex, 1)[0];
+  });
+
+  return stats;
+};
+
+// Logic: Derived Stats
+const calculateDerived = (stats) => {
+  const hp = 10 + Math.floor((stats.might - 10) / 2) + Math.floor((stats.spirit - 10) / 2);
+  const def = 10 + Math.floor((stats.agility - 10) / 2);
+  return { hp, def };
 };
 
 function generate(field = 'all') {
-  if (field === 'all' || field === 'name') current.name = `${pick(data.names)} ${pick(data.epithets)}`;
+  if (field === 'all' || field === 'name') {
+    current.name = pick(data.names);
+    current.epithet = pick(data.epithets);
+  }
   
   if (field === 'all' || field === 'bio') {
     current.ancestry = pick(data.ancestries);
-    current.job = pick(data.jobs);
+    current.jobObj = pick(data.jobs);
+    current.job = current.jobObj.title; // Flatten for display
     current.trait = pick(data.traits);
   }
   
-  if (field === 'all' || field === 'stats') current.stats = generateStats();
+  // If we regenerate stats, we need the job object to weight them correctly
+  if (field === 'all' || field === 'stats') {
+    // If job is missing (partial reroll edge case), pick one temporarily or random
+    const refJob = current.jobObj || pick(data.jobs); 
+    current.stats = generateStats(refJob);
+    current.derived = calculateDerived(current.stats);
+  }
 
   if (field === 'all' || field === 'alignment') {
     current.virtue = pick(data.virtues);
@@ -275,31 +368,57 @@ function generate(field = 'all') {
 }
 
 function render() {
+  const seed = current.name + current.ancestry; // Consistent avatar seed
+  const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+
   document.getElementById("character").innerHTML = `
     <div class="card">
-      <div class="label-row">
-        <span class="label">Identity</span>
-        <button class="reroll-mini" onclick="generate('name')">⟳ Name</button>
+      <div class="profile-header">
+        <div class="avatar">
+           <img src="${avatarUrl}" alt="Character Avatar">
+        </div>
+        <div style="flex:1">
+          <div class="label-row" style="margin-bottom:4px;">
+            <span class="label">Identity</span>
+            <button class="reroll-mini" onclick="generate('name')">⟳ Name</button>
+          </div>
+          <div class="bigName">${current.name}</div>
+          <div style="font-size:14px; opacity:0.8; font-style:italic; margin-bottom:8px;">${current.epithet}</div>
+          <div class="sub" style="font-size: 15px;">
+            A <strong>${current.trait}</strong> ${current.ancestry} <strong style="color:var(--accent)">${current.job}</strong>
+          </div>
+        </div>
       </div>
-      <div class="bigName">${current.name}</div>
-      <div class="sub" style="font-size: 15px; margin-bottom:12px;">
-        A ${current.trait} ${current.ancestry} ${current.job}
-      </div>
-      <div class="label-row" style="margin-top:16px; margin-bottom:4px;">
+
+      <div class="label-row" style="margin-top:24px; margin-bottom:4px;">
         <span class="label">Attributes</span>
         <button class="reroll-mini" onclick="generate('stats')">⟳ Stats</button>
       </div>
+      
       <div class="stat-grid">
-        <div class="stat-box"><span class="stat-val">${current.stats.might}</span><span class="stat-name">Might</span></div>
-        <div class="stat-box"><span class="stat-val">${current.stats.agility}</span><span class="stat-name">Agility</span></div>
-        <div class="stat-box"><span class="stat-val">${current.stats.wits}</span><span class="stat-name">Wits</span></div>
-        <div class="stat-box"><span class="stat-val">${current.stats.spirit}</span><span class="stat-name">Spirit</span></div>
+        <div class="stat-box ${current.stats.might >= 15 ? 'high' : ''}">
+          <span class="stat-val">${current.stats.might}</span><span class="stat-name">Might</span>
+        </div>
+        <div class="stat-box ${current.stats.agility >= 15 ? 'high' : ''}">
+          <span class="stat-val">${current.stats.agility}</span><span class="stat-name">Agility</span>
+        </div>
+        <div class="stat-box ${current.stats.wits >= 15 ? 'high' : ''}">
+          <span class="stat-val">${current.stats.wits}</span><span class="stat-name">Wits</span>
+        </div>
+        <div class="stat-box ${current.stats.spirit >= 15 ? 'high' : ''}">
+          <span class="stat-val">${current.stats.spirit}</span><span class="stat-name">Spirit</span>
+        </div>
+      </div>
+      
+      <div class="derived-stats">
+        <div class="derived-pill"><span>Health</span> <span class="derived-val">${current.derived.hp}</span></div>
+        <div class="derived-pill"><span>Defense</span> <span class="derived-val">${current.derived.def}</span></div>
       </div>
     </div>
 
     <div class="card">
       <div class="label-row">
-        <span class="label">Personality & Gear</span>
+        <span class="label">Details</span>
         <div style="display:flex; gap:8px;">
           <button class="reroll-mini" onclick="generate('alignment')">⟳ Psyche</button>
           <button class="reroll-mini" onclick="generate('inventory')">⟳ Gear</button>
@@ -308,23 +427,24 @@ function render() {
       <div class="chips">
         <div class="chip virtue">Virtue: ${current.virtue}</div>
         <div class="chip vice">Vice: ${current.vice}</div>
-        <div class="chip item">Weapon: ${current.weapon}</div>
-        <div class="chip item">Item: ${current.item}</div>
+        <div class="chip gold">Weapon: ${current.weapon}</div>
+        <div class="chip">Item: ${current.item}</div>
       </div>
     </div>
 
     <div class="card">
       <div class="label-row">
-        <span class="label">The Story</span>
+        <span class="label">Narrative</span>
         <button class="reroll-mini" onclick="generate('hook')">⟳ Plot</button>
       </div>
-      <div style="line-height:1.5; font-size:14px; color:var(--text); margin-bottom:16px;">
+      <div style="line-height:1.6; font-size:15px; color:var(--text); margin-bottom:20px;">
         <strong>Hook:</strong> This character ${current.hook}.
       </div>
-      <div style="background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; position:relative;">
-        <span class="label" style="color:var(--danger); margin-bottom:4px; display:block;">Dark Secret</span>
-        <div class="secret-blur">${current.secret}</div>
-        <div class="secret-hint">(Hover to Reveal)</div>
+      
+      <div class="secret-container" onclick="this.classList.toggle('revealed')">
+        <span class="label" style="color:var(--danger); display:block; margin-bottom:8px;">Dark Secret</span>
+        <div class="secret-text">${current.secret}</div>
+        <div class="secret-hint">(Click to Reveal)</div>
       </div>
     </div>
   `;
@@ -335,13 +455,13 @@ function renderSaves() {
   const container = document.getElementById("saves");
   container.innerHTML = saves.map((s, i) => `
     <div class="saved-item">
-      <div>
-        <div style="font-weight:700; color:var(--accent)">${s.saveTitle || s.name}</div>
+      <div style="overflow:hidden;">
+        <div style="font-weight:700; color:var(--accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.saveTitle || s.name}</div>
         <div style="font-size:11px; color:var(--muted)">${s.ancestry} ${s.job}</div>
       </div>
       <div style="display:flex; gap:4px;">
         <button class="reroll-mini" onclick="loadSave(${i})">Load</button>
-        <button class="reroll-mini" onclick="deleteSave(${i})" style="color:var(--danger)">✕</button>
+        <button class="reroll-mini" onclick="deleteSave(${i})" style="color:var(--danger); border-color:transparent;">✕</button>
       </div>
     </div>
   `).join('');
@@ -350,7 +470,7 @@ function renderSaves() {
 // --- CONTROLS ---
 document.getElementById("saveBtn").onclick = () => {
   const title = document.getElementById("saveTitle").value;
-  saves.unshift({...current, saveTitle: title}); // Add to top
+  saves.unshift({...current, saveTitle: title || current.name});
   localStorage.setItem('lorebound_saves', JSON.stringify(saves));
   document.getElementById("saveTitle").value = '';
   renderSaves();
@@ -368,6 +488,24 @@ document.getElementById("clearBtn").onclick = () => {
 document.getElementById("copyBtn").onclick = () => {
   navigator.clipboard.writeText(JSON.stringify(current, null, 2));
   toast("JSON Copied");
+};
+
+document.getElementById("copyMdBtn").onclick = () => {
+  const md = `## ${current.name} ${current.epithet}
+**${current.ancestry} ${current.job}**
+**Traits:** ${current.trait}
+
+| Might | Agility | Wits | Spirit |
+| :---: | :---: | :---: | :---: |
+| ${current.stats.might} | ${current.stats.agility} | ${current.stats.wits} | ${current.stats.spirit} |
+
+* **Virtue:** ${current.virtue}
+* **Vice:** ${current.vice}
+* **Hook:** ${current.hook}
+* **Secret:** || ${current.secret} ||
+`;
+  navigator.clipboard.writeText(md);
+  toast("Markdown Copied");
 };
 
 document.getElementById("importBtn").onclick = () => {
