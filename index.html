@@ -453,6 +453,12 @@ const toast = t => {
   const el=document.getElementById("toast"); el.textContent=t; 
   el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),2500); 
 };
+const escapeHtml = (value = '') => String(value)
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#039;");
 
 // Logic: Weighted Stat Generation based on Job
 const generateStats = (jobData) => {
@@ -671,16 +677,20 @@ function renderPartyMembers(party) {
   container.innerHTML = party.members.map(member => {
     const character = saves.find(save => save.id === member.id);
     if (!character) return '';
+    const safeName = escapeHtml(character.saveTitle || character.name);
+    const safeRelationship = escapeHtml(member.relationship || '');
+    const safeMemberId = escapeHtml(member.id);
     const roleOptions = roles.map(role => {
       const selected = role === member.role ? 'selected' : '';
-      return `<option value="${role}" ${selected}>${role}</option>`;
+      const safeRole = escapeHtml(role);
+      return `<option value="${safeRole}" ${selected}>${safeRole}</option>`;
     }).join('');
     return `
       <div class="party-member">
-        <div class="member-name">${character.saveTitle || character.name}</div>
-        <select data-member-role="${member.id}">${roleOptions}</select>
-        <input data-member-relationship="${member.id}" placeholder="Relationship..." value="${member.relationship || ''}">
-        <button class="reroll-mini" onclick="removePartyMember('${member.id}')">✕</button>
+        <div class="member-name">${safeName}</div>
+        <select data-member-role="${safeMemberId}">${roleOptions}</select>
+        <input data-member-relationship="${safeMemberId}" placeholder="Relationship..." value="${safeRelationship}">
+        <button class="reroll-mini" onclick="removePartyMember('${safeMemberId}')">✕</button>
       </div>
     `;
   }).join('');
@@ -733,7 +743,13 @@ document.getElementById("saveBtn").onclick = () => {
   const title = document.getElementById("saveTitle").value;
   const id = current.id || makeId();
   current.id = id;
-  saves.unshift({...current, saveTitle: title || current.name});
+  const updatedSave = { ...current, saveTitle: title || current.name };
+  const existingIndex = saves.findIndex(save => save.id === id);
+  if (existingIndex >= 0) {
+    saves[existingIndex] = updatedSave;
+  } else {
+    saves.unshift(updatedSave);
+  }
   localStorage.setItem('lorebound_saves', JSON.stringify(saves));
   document.getElementById("saveTitle").value = '';
   renderSaves();
@@ -781,14 +797,29 @@ document.getElementById("importBtn").onclick = () => {
 };
 
 function deleteSave(i) {
+  const deleted = saves[i];
+  const deletedId = deleted ? deleted.id : null;
   saves.splice(i, 1);
   localStorage.setItem('lorebound_saves', JSON.stringify(saves));
+  if (deletedId) {
+    parties = parties.map(party => ({
+      ...party,
+      members: (party.members || []).filter(member => member.id !== deletedId)
+    }));
+    saveParties();
+  }
   renderSaves();
   renderPartyPanel();
 }
 
 function loadSave(i) {
-  current = saves[i];
+  const saved = saves[i];
+  if (!saved) return;
+  if (window.structuredClone) {
+    current = window.structuredClone(saved);
+  } else {
+    current = JSON.parse(JSON.stringify(saved));
+  }
   render();
   toast("Character Loaded");
 }
@@ -959,6 +990,11 @@ document.getElementById("exportPartyPdfBtn").onclick = () => {
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
+  } else {
+    console.warn("Popup blocked while trying to print party handout.");
+    toast("Popup blocked. Printing in this tab instead.");
+    document.body.innerHTML = printable;
+    window.print();
   }
 };
 
