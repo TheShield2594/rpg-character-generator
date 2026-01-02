@@ -238,6 +238,7 @@ button.btn-sec:hover { background: rgba(255,255,255,0.1); }
       <div style="display:flex; gap:8px;">
         <button class="btn-main btn-sec" id="copyMdBtn">MD</button>
         <button class="btn-main btn-sec" id="copyBtn">JSON</button>
+        <button class="btn-main btn-sec" id="copyTextBtn">TEXT</button>
         <button class="btn-main" id="rerollBtn">Reroll All</button>
       </div>
     </header>
@@ -832,6 +833,18 @@ document.getElementById("copyMdBtn").onclick = () => {
 `;
   navigator.clipboard.writeText(md);
   toast("Markdown Copied");
+};
+
+document.getElementById("copyTextBtn").onclick = () => {
+  const summary = [
+    `${current.name} ${current.epithet} is a ${current.trait} ${current.ancestry} ${current.job}.`,
+    `Virtue: ${current.virtue}. Vice: ${current.vice}.`,
+    `Hook: This character ${current.hook}.`,
+    `First impression: ${current.firstImpression}. Immediate problem: ${current.immediateProblem}.`,
+    `Scene hook: ${current.sceneHook}. Secret: ${current.secret}.`
+  ].join(" ");
+  navigator.clipboard.writeText(summary);
+  toast("Plain text copied");
 };
 
 document.getElementById("importBtn").onclick = () => {
