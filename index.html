@@ -399,6 +399,33 @@ const data = {
     "wears a mask they can never take off",
     "is looking for the ingredients to brew a potion of immortality"
   ],
+  firstImpressions: [
+    "has a habit of tapping a coin against their teeth while thinking",
+    "looks freshly battle-scarred but keeps their armor immaculate",
+    "speaks with a velvet tone that never reaches their eyes",
+    "reeks of herbal smoke and carries a satchel of dried charms",
+    "keeps glancing over their shoulder as if expecting someone",
+    "wears travel dust like a cloak and refuses to sit with their back to a door",
+    "smiles easily but watches everyone’s hands"
+  ],
+  immediateProblems: [
+    "needs a fast escort through a restricted quarter",
+    "is hunting a missing courier before nightfall",
+    "must pay a debt collector who just arrived in town",
+    "lost a stolen relic that was under their protection",
+    "is searching for a healer to stabilize an injured ally",
+    "needs a distraction to slip into a guarded estate",
+    "is out of time to decode a warning about an ambush"
+  ],
+  sceneHooks: [
+    "bursts into the room mid-argument with a city official",
+    "drops a blood-stained map on the table and pleads for help",
+    "arrives disguised as a performer at a crowded festival",
+    "is cornered by thugs just outside the party’s lodgings",
+    "sends a cryptic message that turns out to be a trap",
+    "appears during a storm, dragging a sealed chest behind them",
+    "approaches the party with a forged writ and a desperate plan"
+  ],
   secrets: [
     "They are actually a dragon in humanoid form, stuck this way.",
     "They killed the original hero and took their place.",
@@ -525,6 +552,9 @@ function generate(field = 'all') {
 
   if (field === 'all' || field === 'hook') {
     current.hook = pick(data.hooks);
+    current.firstImpression = pick(data.firstImpressions);
+    current.immediateProblem = pick(data.immediateProblems);
+    current.sceneHook = pick(data.sceneHooks);
     current.secret = pick(data.secrets);
   }
   
@@ -534,6 +564,15 @@ function generate(field = 'all') {
 function render() {
   const seed = current.name + current.ancestry; // Consistent avatar seed
   const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+  if (!current.firstImpression) {
+    current.firstImpression = pick(data.firstImpressions);
+  }
+  if (!current.immediateProblem) {
+    current.immediateProblem = pick(data.immediateProblems);
+  }
+  if (!current.sceneHook) {
+    current.sceneHook = pick(data.sceneHooks);
+  }
 
   document.getElementById("character").innerHTML = `
     <div class="card">
@@ -603,6 +642,11 @@ function render() {
       </div>
       <div style="line-height:1.6; font-size:15px; color:var(--text); margin-bottom:20px;">
         <strong>Hook:</strong> This character ${current.hook}.
+      </div>
+      <div style="display:grid; gap:10px; font-size:13px; color:var(--muted); margin-bottom:18px;">
+        <div><strong style="color:var(--text);">First Impression:</strong> ${current.firstImpression}</div>
+        <div><strong style="color:var(--text);">Immediate Problem:</strong> ${current.immediateProblem}</div>
+        <div><strong style="color:var(--text);">Scene Hook:</strong> ${current.sceneHook}</div>
       </div>
       
       <div class="secret-container" onclick="this.classList.toggle('revealed')">
@@ -781,6 +825,9 @@ document.getElementById("copyMdBtn").onclick = () => {
 * **Virtue:** ${current.virtue}
 * **Vice:** ${current.vice}
 * **Hook:** ${current.hook}
+* **First Impression:** ${current.firstImpression}
+* **Immediate Problem:** ${current.immediateProblem}
+* **Scene Hook:** ${current.sceneHook}
 * **Secret:** || ${current.secret} ||
 `;
   navigator.clipboard.writeText(md);
