@@ -248,6 +248,9 @@ button.btn-sec:hover { background: rgba(255,255,255,0.1); }
   </section>
 
   <aside class="glass sidebar">
+    <div class="label">Generation Mode</div>
+    <select id="modeSelect"></select>
+
     <div class="label">Library</div>
     <div style="display:flex; gap:8px;">
       <input id="saveTitle" placeholder="Character Label..." />
@@ -380,6 +383,10 @@ const data = {
     "Deceit", "Treachery", "Cruelty", "Indifference", "Laziness", "Impatience", "Arrogance", "Selfishness", 
     "Dishonesty", "Disloyalty", "Recklessness", "Suspicion", "Jealousy", "Spite", "Malice"
   ],
+  villainVices: [
+    "Domination", "Bloodlust", "Corruption", "Obsession", "Sadism", "Cruelty", "Power-Hunger",
+    "Nihilism", "Contempt", "Manipulation", "Ruthlessness", "Paranoia", "Blackmail", "Betrayal"
+  ],
   hooks: [
     "woke up in a morgue with a toe tag but no memory of dying",
     "has a key that glows when pointing north, but fits no lock",
@@ -399,6 +406,17 @@ const data = {
     "is the sole survivor of a village that vanished overnight",
     "wears a mask they can never take off",
     "is looking for the ingredients to brew a potion of immortality"
+  ],
+  villainHooks: [
+    "is assembling a cult to summon a forgotten tyrant",
+    "needs a scapegoat for a crime that will spark a war",
+    "is blackmailing a noble to seize control of the city guard",
+    "is smuggling cursed relics to fund a coup",
+    "requires a rare toxin to silence a rival forever",
+    "is negotiating with devils to trade a soul for power",
+    "seeks allies to unseat the rightful heir by any means",
+    "is orchestrating a plague to thin the populace",
+    "has bound a demon and needs fresh sacrifices to keep it loyal"
   ],
   firstImpressions: [
     "has a habit of tapping a coin against their teeth while thinking",
@@ -444,6 +462,13 @@ const data = {
     "They are a fallen angel seeking a way back to grace.",
     "They are a spy for a rival dimension."
   ],
+  villainSecrets: [
+    "They are the architect behind a string of disappearances.",
+    "They forged evidence to frame a rival house.",
+    "They have a second identity that leads a criminal syndicate.",
+    "They are cursed to feed on fear or slowly die.",
+    "They have a pact that demands a life each new moon."
+  ],
   items: [
     "Bag of Holding (full of sand)", "Immovable Rod", "Decanter of Endless Water", "Cloak of Billowing", 
     "Sending Stones", "Alchemy Jug", "Driftglobe", "Goggles of Night", "Hat of Disguise", "Lantern of Revealing", 
@@ -488,6 +513,44 @@ const escapeHtml = (value = '') => String(value)
   .replace(/"/g, "&quot;")
   .replace(/'/g, "&#039;");
 
+const modeOptions = [
+  { value: "Standard", label: "Standard" },
+  { value: "Villain", label: "Villain" }
+];
+
+const getDefaultMode = () => modeOptions[0].value;
+
+const blendNarrative = (base, bias, weight = 2) => {
+  if (!bias || bias.length === 0) return base;
+  const weightedBias = Array.from({ length: weight }, () => bias).flat();
+  return base.concat(weightedBias);
+};
+
+const getNarrativePools = () => {
+  const mode = current.mode || getDefaultMode();
+  if (mode === "Villain") {
+    return {
+      hooks: blendNarrative(data.hooks, data.villainHooks, 2),
+      secrets: blendNarrative(data.secrets, data.villainSecrets, 2),
+      vices: blendNarrative(data.vices, data.villainVices, 2)
+    };
+  }
+  return {
+    hooks: data.hooks,
+    secrets: data.secrets,
+    vices: data.vices
+  };
+};
+
+const renderModeSelect = () => {
+  const select = document.getElementById("modeSelect");
+  if (!select) return;
+  select.innerHTML = modeOptions
+    .map(option => `<option value="${option.value}">${option.label}</option>`)
+    .join('');
+  select.value = current.mode || getDefaultMode();
+};
+
 // Logic: Weighted Stat Generation based on Job
 const generateStats = (jobData) => {
   // Standard Array
@@ -521,6 +584,9 @@ const calculateDerived = (stats) => {
 };
 
 function generate(field = 'all') {
+  if (!current.mode) {
+    current.mode = getDefaultMode();
+  }
   if (field === 'all' || field === 'name') {
     current.name = pick(data.names);
     current.epithet = pick(data.epithets);
@@ -542,8 +608,9 @@ function generate(field = 'all') {
   }
 
   if (field === 'all' || field === 'alignment') {
+    const narrativePools = getNarrativePools();
     current.virtue = pick(data.virtues);
-    current.vice = pick(data.vices);
+    current.vice = pick(narrativePools.vices);
   }
   
   if (field === 'all' || field === 'inventory') {
@@ -552,17 +619,22 @@ function generate(field = 'all') {
   }
 
   if (field === 'all' || field === 'hook') {
-    current.hook = pick(data.hooks);
+    const narrativePools = getNarrativePools();
+    current.hook = pick(narrativePools.hooks);
     current.firstImpression = pick(data.firstImpressions);
     current.immediateProblem = pick(data.immediateProblems);
     current.sceneHook = pick(data.sceneHooks);
-    current.secret = pick(data.secrets);
+    current.secret = pick(narrativePools.secrets);
   }
   
   render();
 }
 
 function render() {
+  if (!current.mode) {
+    current.mode = getDefaultMode();
+  }
+  renderModeSelect();
   const seed = current.name + current.ancestry; // Consistent avatar seed
   const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
   if (!current.firstImpression) {
@@ -784,6 +856,15 @@ function saveParties() {
 }
 
 // --- CONTROLS ---
+const modeSelect = document.getElementById("modeSelect");
+if (modeSelect) {
+  modeSelect.onchange = (event) => {
+    current.mode = event.target.value;
+    generate('alignment');
+    generate('hook');
+  };
+}
+
 document.getElementById("saveBtn").onclick = () => {
   const title = document.getElementById("saveTitle").value;
   const id = current.id || makeId();
