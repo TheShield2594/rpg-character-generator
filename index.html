@@ -172,7 +172,13 @@ input, textarea {
   color: white; padding: 12px; border-radius: var(--radius-md); 
   font-family: var(--font-body); width: 100%;
 }
+select {
+  background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border);
+  color: white; padding: 12px; border-radius: var(--radius-md);
+  font-family: var(--font-body); width: 100%;
+}
 input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
 
 /* Buttons */
 button.btn-main {
@@ -198,6 +204,17 @@ button.btn-sec:hover { background: rgba(255,255,255,0.1); }
   border-left: 2px solid transparent;
 }
 .saved-item:hover { background: rgba(255,255,255,0.06); border-left-color: var(--accent); }
+
+.party-members { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; padding-right: 4px; }
+.party-member { 
+  display: grid; grid-template-columns: 1.2fr 0.9fr 1fr auto; gap: 8px; align-items: center;
+  background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; border: 1px solid var(--glass-border);
+}
+.party-member input, .party-member select { padding: 8px; font-size: 12px; }
+.party-member .member-name { font-size: 12px; color: var(--text); font-weight: 600; }
+.party-meta { display: grid; gap: 8px; }
+.party-meta textarea { resize: vertical; min-height: 60px; }
+.party-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
 .toast{ 
   position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px); 
@@ -245,6 +262,30 @@ button.btn-sec:hover { background: rgba(255,255,255,0.1); }
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
       <button class="btn-main btn-sec" id="importBtn">Import</button>
       <button class="btn-main btn-sec" id="clearBtn" style="color:var(--danger); border-color:rgba(255,90,130,0.3)">Reset</button>
+    </div>
+
+    <hr style="width:100%; border:0; border-top:1px solid var(--glass-border); margin:4px 0;">
+
+    <div class="label">Campaign Companion</div>
+    <div class="party-meta">
+      <select id="partySelect"></select>
+      <input id="partyName" placeholder="Party Name..." />
+      <textarea id="partySetting" rows="2" placeholder="Campaign setting..."></textarea>
+      <textarea id="partyFactions" rows="2" placeholder="Factions or rivals..."></textarea>
+      <textarea id="partyLocations" rows="2" placeholder="Key locations..."></textarea>
+      <textarea id="partyNotes" rows="2" placeholder="GM notes / session notes..."></textarea>
+      <div class="party-controls">
+        <button class="btn-main btn-sec" id="newPartyBtn">New Party</button>
+        <button class="btn-main" id="savePartyBtn">Save Party</button>
+      </div>
+      <button class="btn-main btn-sec" id="addToPartyBtn">Add Current to Party</button>
+    </div>
+
+    <div class="label" style="margin-top:8px;">Party Roster</div>
+    <div id="partyMembers" class="party-members"></div>
+    <div class="party-controls" style="margin-top:8px;">
+      <button class="btn-main btn-sec" id="exportPartyMdBtn">Export Party MD</button>
+      <button class="btn-main btn-sec" id="exportPartyPdfBtn">Export Party PDF</button>
     </div>
   </aside>
 </div>
@@ -396,6 +437,15 @@ const data = {
 // --- LOGIC ---
 let current = {};
 let saves = JSON.parse(localStorage.getItem('lorebound_saves') || '[]');
+let parties = JSON.parse(localStorage.getItem('lorebound_parties') || '[]');
+let activePartyId = null;
+
+const makeId = () => {
+  if (window.crypto && window.crypto.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  return `id_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+};
 
 const pick = a => a[Math.floor(Math.random()*a.length)];
 const roll = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
@@ -403,6 +453,12 @@ const toast = t => {
   const el=document.getElementById("toast"); el.textContent=t; 
   el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),2500); 
 };
+const escapeHtml = (value = '') => String(value)
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#039;");
 
 // Logic: Weighted Stat Generation based on Job
 const generateStats = (jobData) => {
@@ -557,6 +613,7 @@ function render() {
     </div>
   `;
   renderSaves();
+  renderPartyPanel();
 }
 
 function renderSaves() {
@@ -575,10 +632,124 @@ function renderSaves() {
   `).join('');
 }
 
+function hydrateSaves() {
+  let changed = false;
+  saves = saves.map(save => {
+    if (!save.id) {
+      changed = true;
+      return { ...save, id: makeId() };
+    }
+    return save;
+  });
+  if (changed) {
+    localStorage.setItem('lorebound_saves', JSON.stringify(saves));
+  }
+}
+
+function renderPartyPanel() {
+  const select = document.getElementById("partySelect");
+  if (!select) return;
+  const options = [`<option value="">Select a party...</option>`];
+  parties.forEach(party => {
+    const selected = party.id === activePartyId ? 'selected' : '';
+    options.push(`<option value="${party.id}" ${selected}>${party.name || 'Unnamed Party'}</option>`);
+  });
+  select.innerHTML = options.join('');
+  const activeParty = parties.find(p => p.id === activePartyId);
+  if (!activeParty) {
+    document.getElementById("partyName").value = '';
+    document.getElementById("partySetting").value = '';
+    document.getElementById("partyFactions").value = '';
+    document.getElementById("partyLocations").value = '';
+    document.getElementById("partyNotes").value = '';
+  }
+  renderPartyMembers(activeParty);
+}
+
+function renderPartyMembers(party) {
+  const container = document.getElementById("partyMembers");
+  if (!container) return;
+  if (!party || !party.members || party.members.length === 0) {
+    container.innerHTML = `<div style="font-size:12px; color:var(--muted);">No party members yet.</div>`;
+    return;
+  }
+  const roles = getRoles();
+  container.innerHTML = party.members.map(member => {
+    const character = saves.find(save => save.id === member.id);
+    if (!character) return '';
+    const safeName = escapeHtml(character.saveTitle || character.name);
+    const safeRelationship = escapeHtml(member.relationship || '');
+    const safeMemberId = escapeHtml(member.id);
+    const roleOptions = roles.map(role => {
+      const selected = role === member.role ? 'selected' : '';
+      const safeRole = escapeHtml(role);
+      return `<option value="${safeRole}" ${selected}>${safeRole}</option>`;
+    }).join('');
+    return `
+      <div class="party-member">
+        <div class="member-name">${safeName}</div>
+        <select data-member-role="${safeMemberId}">${roleOptions}</select>
+        <input data-member-relationship="${safeMemberId}" placeholder="Relationship..." value="${safeRelationship}">
+        <button class="reroll-mini" onclick="removePartyMember('${safeMemberId}')">✕</button>
+      </div>
+    `;
+  }).join('');
+  container.querySelectorAll('[data-member-role]').forEach(select => {
+    select.onchange = () => updateMemberRole(select.dataset.memberRole, select.value);
+  });
+  container.querySelectorAll('[data-member-relationship]').forEach(input => {
+    input.onchange = () => updateMemberRelationship(input.dataset.memberRelationship, input.value);
+  });
+}
+
+function getRoles() {
+  return ["Tank", "Healer", "Face", "Striker", "Support", "Controller", "Scout", "Utility", "Wild Card"];
+}
+
+function updateMemberRole(memberId, role) {
+  const party = parties.find(p => p.id === activePartyId);
+  if (!party) return;
+  const member = party.members.find(m => m.id === memberId);
+  if (member) {
+    member.role = role;
+    saveParties();
+  }
+}
+
+function updateMemberRelationship(memberId, relationship) {
+  const party = parties.find(p => p.id === activePartyId);
+  if (!party) return;
+  const member = party.members.find(m => m.id === memberId);
+  if (member) {
+    member.relationship = relationship;
+    saveParties();
+  }
+}
+
+function removePartyMember(memberId) {
+  const party = parties.find(p => p.id === activePartyId);
+  if (!party) return;
+  party.members = party.members.filter(m => m.id !== memberId);
+  saveParties();
+  renderPartyMembers(party);
+}
+
+function saveParties() {
+  localStorage.setItem('lorebound_parties', JSON.stringify(parties));
+}
+
 // --- CONTROLS ---
 document.getElementById("saveBtn").onclick = () => {
   const title = document.getElementById("saveTitle").value;
-  saves.unshift({...current, saveTitle: title || current.name});
+  const id = current.id || makeId();
+  current.id = id;
+  const updatedSave = { ...current, saveTitle: title || current.name };
+  const existingIndex = saves.findIndex(save => save.id === id);
+  if (existingIndex >= 0) {
+    saves[existingIndex] = updatedSave;
+  } else {
+    saves.unshift(updatedSave);
+  }
   localStorage.setItem('lorebound_saves', JSON.stringify(saves));
   document.getElementById("saveTitle").value = '';
   renderSaves();
@@ -626,20 +797,210 @@ document.getElementById("importBtn").onclick = () => {
 };
 
 function deleteSave(i) {
+  const deleted = saves[i];
+  const deletedId = deleted ? deleted.id : null;
   saves.splice(i, 1);
   localStorage.setItem('lorebound_saves', JSON.stringify(saves));
+  if (deletedId) {
+    parties = parties.map(party => ({
+      ...party,
+      members: (party.members || []).filter(member => member.id !== deletedId)
+    }));
+    saveParties();
+  }
   renderSaves();
+  renderPartyPanel();
 }
 
 function loadSave(i) {
-  current = saves[i];
+  const saved = saves[i];
+  if (!saved) return;
+  if (window.structuredClone) {
+    current = window.structuredClone(saved);
+  } else {
+    current = JSON.parse(JSON.stringify(saved));
+  }
   render();
   toast("Character Loaded");
 }
 
 document.getElementById("rerollBtn").onclick = () => generate('all');
 
+document.getElementById("partySelect").onchange = (event) => {
+  activePartyId = event.target.value || null;
+  const party = parties.find(p => p.id === activePartyId);
+  if (party) {
+    document.getElementById("partyName").value = party.name || '';
+    document.getElementById("partySetting").value = party.setting || '';
+    document.getElementById("partyFactions").value = party.factions || '';
+    document.getElementById("partyLocations").value = party.locations || '';
+    document.getElementById("partyNotes").value = party.notes || '';
+  }
+  renderPartyMembers(party);
+};
+
+document.getElementById("newPartyBtn").onclick = () => {
+  activePartyId = null;
+  document.getElementById("partySelect").value = '';
+  document.getElementById("partyName").value = '';
+  document.getElementById("partySetting").value = '';
+  document.getElementById("partyFactions").value = '';
+  document.getElementById("partyLocations").value = '';
+  document.getElementById("partyNotes").value = '';
+  renderPartyMembers(null);
+};
+
+document.getElementById("savePartyBtn").onclick = () => {
+  const name = document.getElementById("partyName").value.trim();
+  const setting = document.getElementById("partySetting").value.trim();
+  const factions = document.getElementById("partyFactions").value.trim();
+  const locations = document.getElementById("partyLocations").value.trim();
+  const notes = document.getElementById("partyNotes").value.trim();
+  let party = parties.find(p => p.id === activePartyId);
+  if (!party) {
+    party = { id: makeId(), members: [] };
+    parties.unshift(party);
+    activePartyId = party.id;
+  }
+  party.name = name || party.name || 'Unnamed Party';
+  party.setting = setting;
+  party.factions = factions;
+  party.locations = locations;
+  party.notes = notes;
+  saveParties();
+  renderPartyPanel();
+  toast("Party Saved");
+};
+
+document.getElementById("addToPartyBtn").onclick = () => {
+  if (!activePartyId) {
+    toast("Select or create a party first");
+    return;
+  }
+  if (!current.id) {
+    current.id = makeId();
+    saves.unshift({ ...current, saveTitle: current.name });
+    localStorage.setItem('lorebound_saves', JSON.stringify(saves));
+    renderSaves();
+  }
+  const party = parties.find(p => p.id === activePartyId);
+  if (!party) return;
+  if (!party.members.find(member => member.id === current.id)) {
+    party.members.push({ id: current.id, role: "Wild Card", relationship: "" });
+    saveParties();
+    renderPartyMembers(party);
+    toast("Added to Party");
+  } else {
+    toast("Already in Party");
+  }
+};
+
+document.getElementById("exportPartyMdBtn").onclick = () => {
+  const party = parties.find(p => p.id === activePartyId);
+  if (!party) {
+    toast("Select a party first");
+    return;
+  }
+  const members = party.members.map(member => {
+    const character = saves.find(save => save.id === member.id);
+    if (!character) return '';
+    return `### ${character.name} ${character.epithet}
+**${character.ancestry} ${character.job}**  
+Role: ${member.role || 'Unassigned'}  
+Relationship: ${member.relationship || '—'}
+
+| Might | Agility | Wits | Spirit |
+| :---: | :---: | :---: | :---: |
+| ${character.stats.might} | ${character.stats.agility} | ${character.stats.wits} | ${character.stats.spirit} |
+
+* Virtue: ${character.virtue}
+* Vice: ${character.vice}
+* Hook: ${character.hook}
+`;
+  }).filter(Boolean).join('\n');
+
+  const md = `# ${party.name || 'Party'}
+**Setting:** ${party.setting || '—'}  
+**Factions:** ${party.factions || '—'}  
+**Locations:** ${party.locations || '—'}  
+**GM Notes:** ${party.notes || '—'}
+
+## Roster
+${members || '_No members yet._'}
+`;
+  navigator.clipboard.writeText(md);
+  toast("Party Markdown Copied");
+};
+
+document.getElementById("exportPartyPdfBtn").onclick = () => {
+  const party = parties.find(p => p.id === activePartyId);
+  if (!party) {
+    toast("Select a party first");
+    return;
+  }
+  const members = party.members.map(member => {
+    const character = saves.find(save => save.id === member.id);
+    if (!character) return '';
+    return `
+      <section style="margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #ccc;">
+        <h3 style="margin:0 0 6px;">${character.name} ${character.epithet}</h3>
+        <div><strong>${character.ancestry} ${character.job}</strong></div>
+        <div>Role: ${member.role || 'Unassigned'} | Relationship: ${member.relationship || '—'}</div>
+        <table style="width:100%; border-collapse: collapse; margin-top:8px;">
+          <tr>
+            <th style="border:1px solid #ddd; padding:6px;">Might</th>
+            <th style="border:1px solid #ddd; padding:6px;">Agility</th>
+            <th style="border:1px solid #ddd; padding:6px;">Wits</th>
+            <th style="border:1px solid #ddd; padding:6px;">Spirit</th>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding:6px; text-align:center;">${character.stats.might}</td>
+            <td style="border:1px solid #ddd; padding:6px; text-align:center;">${character.stats.agility}</td>
+            <td style="border:1px solid #ddd; padding:6px; text-align:center;">${character.stats.wits}</td>
+            <td style="border:1px solid #ddd; padding:6px; text-align:center;">${character.stats.spirit}</td>
+          </tr>
+        </table>
+        <ul style="margin:8px 0 0 16px;">
+          <li><strong>Virtue:</strong> ${character.virtue}</li>
+          <li><strong>Vice:</strong> ${character.vice}</li>
+          <li><strong>Hook:</strong> ${character.hook}</li>
+        </ul>
+      </section>
+    `;
+  }).filter(Boolean).join('');
+  const printable = `
+    <html>
+      <head>
+        <title>${party.name || 'Party'} - Session Handout</title>
+      </head>
+      <body style="font-family: 'Inter', sans-serif; padding:24px;">
+        <h1 style="margin-top:0;">${party.name || 'Party'}</h1>
+        <p><strong>Setting:</strong> ${party.setting || '—'}</p>
+        <p><strong>Factions:</strong> ${party.factions || '—'}</p>
+        <p><strong>Locations:</strong> ${party.locations || '—'}</p>
+        <p><strong>GM Notes:</strong> ${party.notes || '—'}</p>
+        <h2>Roster</h2>
+        ${members || '<p>No members yet.</p>'}
+      </body>
+    </html>
+  `;
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(printable);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  } else {
+    console.warn("Popup blocked while trying to print party handout.");
+    toast("Popup blocked. Printing in this tab instead.");
+    document.body.innerHTML = printable;
+    window.print();
+  }
+};
+
 // Initial Launch
+hydrateSaves();
+renderPartyPanel();
 generate();
 </script>
 </body>
